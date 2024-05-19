@@ -11,17 +11,15 @@ class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
         return os.getenv("TRAFFIC_CRASHES_CRASHES_SOURCE_PATH")
 
     def run_processing(self, data: pd.DataFrame, destination_path: str):
-        # print(data.columns)
-        print('starting processing of data...')
         self._populate_accident_traffic_dim_csv(data=data,
                                                 destination_path=destination_path)
-        print('populated accident traffic')
+        print('.')
         self._populate_location_dim_csv(data=data,
                                         destination_path=destination_path)
-        print('populated locations')
+        print('.')
         self._populate_accident_time_dim_csv(data=data,
                                              destination_path=destination_path)
-        print('populated accident time data')
+        print('.')
 
     def _populate_accident_traffic_dim_csv(self, data: pd.DataFrame, destination_path: str):
         accident_traffic_dim_filename = 'accident_traffic_dim.csv'
