@@ -29,3 +29,8 @@ class TrafficCrashesCSVProcessor(ABC):
     @abstractmethod
     def run_processing(self, data: pd.DataFrame, destination_path: str):
         pass
+
+    @staticmethod
+    def _populate_to_csv(data: pd.DataFrame, destination_path: str, columns_mapping: dict[str, str]):
+        data = data.filter(items=list(columns_mapping)).rename(columns=columns_mapping)
+        data.to_csv(destination_path, mode='a', index=False)
