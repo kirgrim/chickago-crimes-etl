@@ -34,6 +34,7 @@ class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
                                     'DATE_POLICE_NOTIFIED': 'IdDatePoliceNotified',
                                     'INJURIES_TOTAL': 'InjuriesTotal',
                                     'INJURIES_FATAL': 'InjuriesFatal',
+                                    'PRIM_CONTRIBUTORY_CAUSE': 'Cause'
                                     }
         data['INJURIES_TOTAL'] = data['INJURIES_TOTAL'].fillna(0).astype(int)
         data['INJURIES_FATAL'] = data['INJURIES_FATAL'].fillna(0).astype(int)

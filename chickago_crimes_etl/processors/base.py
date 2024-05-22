@@ -5,11 +5,14 @@ from abc import ABC, abstractmethod
 
 class TrafficCrashesCSVProcessor(ABC):
 
-    FILE_PROCESSING_CHUNK_SIZE = int(os.getenv("FILE_PROCESSING_CHUNK_SIZE", "100000"))
+    FILE_PROCESSING_CHUNK_SIZE = int(os.getenv("FILE_PROCESSING_CHUNK_SIZE", "1000000"))
 
     def run(self, run_id: str) -> str:
         destination_path = os.path.join(self.processing_result_store_dir, run_id)
-        os.mkdir(destination_path)
+        try:
+            os.mkdir(destination_path)
+        except FileExistsError:
+            pass
         i = 1
         print(f'starting processing of {run_id = !r}')
         for chunk in pd.read_csv(self.csv_source_path, chunksize=self.FILE_PROCESSING_CHUNK_SIZE, parse_dates=True):
