@@ -13,13 +13,16 @@ class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
     def run_processing(self, data: pd.DataFrame, destination_path: str):
         self._populate_accident_traffic_dim_csv(data=data,
                                                 destination_path=destination_path)
-        print('.')
+        print('.', end='')
         self._populate_location_dim_csv(data=data,
                                         destination_path=destination_path)
-        print('.')
+        print('.', end='')
         self._populate_accident_time_dim_csv(data=data,
                                              destination_path=destination_path)
-        print('.')
+        print('.', end='')
+        self._populate_police_notified_date_dim_csv(data=data,
+                                                    destination_path=destination_path)
+        print('. DONE', end='\n')
 
     def _populate_accident_traffic_dim_csv(self, data: pd.DataFrame, destination_path: str):
         accident_traffic_dim_filename = 'accident_traffic_dim.csv'
@@ -31,7 +34,6 @@ class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
                                     'DAMAGE': 'Damage',
                                     'POSTED_SPEED_LIMIT': 'PostedSpeedLimit',
                                     'CRASH_TYPE': 'CrashType',
-                                    'DATE_POLICE_NOTIFIED': 'IdDatePoliceNotified',
                                     'INJURIES_TOTAL': 'InjuriesTotal',
                                     'INJURIES_FATAL': 'InjuriesFatal',
                                     'PRIM_CONTRIBUTORY_CAUSE': 'Cause'
@@ -59,20 +61,45 @@ class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
         accident_time_columns = {
             'CRASH_RECORD_ID': 'IdIncident',
             'CRASH_DATE': 'IncidentDate',
-            'CRASH_YEAR': 'Year',
-            'CRASH_MONTH': 'Month',
-            'CRASH_MONTH_NAME': 'MonthName',
-            'CRASH_DAY_OF_WEEK': 'WeekDay',
-            'CRASH_DAY_OF_WEEK_NAME': 'WeekDayName',
-            'CRASH_DAY': 'Day',
-            'CRASH_HOUR': 'Hour',
-            'CRASH_MINUTE': 'Minute'
+            'YEAR': 'Year',
+            'MONTH': 'Month',
+            'MONTH_NAME': 'MonthName',
+            'DAY_OF_WEEK': 'WeekDay',
+            'DAY_OF_WEEK_NAME': 'WeekDayName',
+            'DAY': 'Day',
+            'HOUR': 'Hour',
+            'MINUTE': 'Minute'
         }
-        date_series = data["CRASH_DATE"].apply(lambda x: datetime.datetime.strptime(x, "%m/%d/%Y %I:%M:%S %p"))
-        data['CRASH_YEAR'] = date_series.apply(lambda x: x.year)
-        data['CRASH_DAY'] = date_series.apply(lambda x: x.day)
-        data['CRASH_MINUTE'] = date_series.apply(lambda x: x.minute)
-        data['CRASH_MONTH_NAME'] = date_series.apply(lambda x: x.strftime("%B"))
-        data['CRASH_DAY_OF_WEEK_NAME'] = date_series.apply(lambda x: x.strftime("%A"))
-
+        data = self._decompose_date_columns(data=data, source_column='CRASH_DATE')
         self._populate_to_csv(data=data, destination_path=destination_path, columns_mapping=accident_time_columns)
+
+    def _populate_police_notified_date_dim_csv(self, data: pd.DataFrame, destination_path: str):
+        accident_time_dim_filename = 'police_notified_date_dim.csv'
+        destination_path = os.path.join(destination_path, accident_time_dim_filename)
+        accident_time_columns = {
+            'CRASH_RECORD_ID': 'IdIncident',
+            'DATE_POLICE_NOTIFIED': 'IncidentDate',
+            'YEAR': 'Year',
+            'MONTH': 'Month',
+            'MONTH_NAME': 'MonthName',
+            'DAY_OF_WEEK': 'WeekDay',
+            'DAY_OF_WEEK_NAME': 'WeekDayName',
+            'DAY': 'Day',
+            'HOUR': 'Hour',
+            'MINUTE': 'Minute'
+        }
+        data = self._decompose_date_columns(data=data, source_column='DATE_POLICE_NOTIFIED')
+        self._populate_to_csv(data=data, destination_path=destination_path, columns_mapping=accident_time_columns)
+
+    @staticmethod
+    def _decompose_date_columns(data, source_column: str):
+        date_series = data[source_column].apply(lambda x: datetime.datetime.strptime(x, "%m/%d/%Y %I:%M:%S %p"))
+        data['YEAR'] = date_series.apply(lambda x: x.year)
+        data['MONTH'] = date_series.apply(lambda x: x.month)
+        data['MONTH_NAME'] = date_series.apply(lambda x: x.strftime("%B"))
+        data['DAY_OF_WEEK'] = date_series.apply(lambda x: x.weekday())
+        data['DAY_OF_WEEK_NAME'] = date_series.apply(lambda x: x.strftime("%A"))
+        data['DAY'] = date_series.apply(lambda x: x.day)
+        data['HOUR'] = date_series.apply(lambda x: x.hour)
+        data['MINUTE'] = date_series.apply(lambda x: x.minute)
+        return data
