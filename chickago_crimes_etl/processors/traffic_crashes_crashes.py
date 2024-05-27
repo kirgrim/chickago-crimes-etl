@@ -52,6 +52,7 @@ class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
             'STREET_NAME': 'StreetName',
         }
         accident_location_dim_filename = 'accident_location_dim.csv'
+        data.fillna(-1, inplace=True)
         destination_path = os.path.join(destination_path, accident_location_dim_filename)
         self._populate_to_csv(data=data, destination_path=destination_path, columns_mapping=location_columns)
 
