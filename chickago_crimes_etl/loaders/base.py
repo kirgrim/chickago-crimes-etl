@@ -8,9 +8,8 @@ from .orm.models import Session, TrafficAccidentVictimsInChicago
 
 
 class TrafficCrashesLoader(ABC):
-    FILE_PROCESSING_CHUNK_SIZE = int(os.getenv("FILE_PROCESSING_CHUNK_SIZE", "100000"))
+    FILE_PROCESSING_CHUNK_SIZE = int(os.getenv("FILE_PROCESSING_CHUNK_SIZE", "1000000"))
     BASE_PATH = os.getenv("BASE_PATH", "./")
-    __step = 1
 
     def run(self, run_id: str) -> str:
         i = 1
@@ -62,13 +61,21 @@ class TrafficCrashesLoader(ABC):
                           for i in range(len(item_accident_ids))]
         session.bulk_update_mappings(TrafficAccidentVictimsInChicago, update_records)
 
+    _step = None
+
+    @staticmethod
+    def gen_number():
+        yield from range(1, 10**9, 100)
+
     @classmethod
-    def _get_step(cls):
-        yield from range(10**7)
+    def _get_next_step(cls):
+        if cls._step is None:
+            cls._step = cls.gen_number()
+        return next(cls._step)
 
     @classmethod
     def _get_ts_id(cls) -> int:
-        res = next(cls._get_step()) + int(time())
+        res = cls._get_next_step() + int(time())
         return res
 
     @abstractmethod

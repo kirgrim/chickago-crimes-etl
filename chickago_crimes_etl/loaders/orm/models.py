@@ -21,7 +21,7 @@ class TrafficAccidentLocation(Base):
 
 class TrafficAccidentVictimsAgg(Base):
     __tablename__ = 'trafficAccidentVictimsAgg'
-    id = Column(Integer, primary_key=True, autoincrement=True, name='idVictimsAgg')
+    id = Column(BigInteger, primary_key=True, default=0, name='idVictimsAgg')
     num_passenger_victims = Column(Integer, name='numPassengerVictims')
     num_driver_victims = Column(Integer, name='numDriverVictims')
     num_pedestrian_victims = Column(String(128), name='numPedestrianVictims')
@@ -46,7 +46,7 @@ class TrafficAccident(Base):
 
 class TrafficAccidentTime(Base):
     __tablename__ = 'trafficAccidentTime'
-    id = Column(Integer, primary_key=True, autoincrement=True, name='timeId')
+    id = Column(BigInteger, primary_key=True, default=0, name='timeId')
     date = Column(String(64), name='date')
     year = Column(Integer, name='year')
     month = Column(Integer, name='month')
@@ -60,7 +60,7 @@ class TrafficAccidentTime(Base):
 
 class TrafficAccidentVehicle(Base):
     __tablename__ = 'trafficAccidentVehicle'
-    id = Column(Integer, primary_key=True, autoincrement=True, name='idVehicle')
+    id = Column(BigInteger, primary_key=True, default=0, name='idVehicle')
     vehicle_make = Column(String(64), name='vehicleMake')
     vehicle_model = Column(String(64), name='vehicleModel')
     vehicle_year = Column(Integer, name='vehicleYear')
@@ -72,11 +72,11 @@ class TrafficAccidentVehicle(Base):
 class TrafficAccidentVictimsInChicago(Base):
     __tablename__ = 'trafficAccidentVictimsInChicago'
     id_traffic_accident = Column(String(128), ForeignKey('trafficAccident.idAccidentTraffic'), primary_key=True, name='idTrafficAccident', autoincrement=False)
-    id_traffic_accident_time = Column(Integer, ForeignKey('trafficAccidentTime.timeId'), name='idTrafficAccidentTime', nullable=True, default=None, autoincrement=False)
-    id_traffic_accident_police_notified = Column(Integer, ForeignKey('trafficAccidentTime.timeId'), name='idTrafficAccidentPoliceNotified', nullable=True, default=None, autoincrement=False)
-    id_traffic_accident_victims_agg = Column(Integer, ForeignKey('trafficAccidentVictimsAgg.idVictimsAgg'), name='idTrafficAccidentVictimsAgg', nullable=True, default=None, autoincrement=False)
-    id_traffic_accident_location = Column(Integer, ForeignKey('trafficAccidentLocation.idLocation'), name='idTrafficAccidentLocation', nullable=True, default=None, autoincrement=False)
-    id_traffic_accident_vehicle = Column(Integer, ForeignKey('trafficAccidentVehicle.idVehicle'), name='idTrafficAccidentVehicle', nullable=True, default=None, autoincrement=False)
+    id_traffic_accident_time = Column(BigInteger, ForeignKey('trafficAccidentTime.timeId'), name='idTrafficAccidentTime', nullable=True, default=None, autoincrement=False)
+    id_traffic_accident_police_notified = Column(BigInteger, ForeignKey('trafficAccidentTime.timeId'), name='idTrafficAccidentPoliceNotified', nullable=True, default=None, autoincrement=False)
+    id_traffic_accident_victims_agg = Column(BigInteger, ForeignKey('trafficAccidentVictimsAgg.idVictimsAgg'), name='idTrafficAccidentVictimsAgg', nullable=True, default=None, autoincrement=False)
+    id_traffic_accident_location = Column(BigInteger, ForeignKey('trafficAccidentLocation.idLocation'), name='idTrafficAccidentLocation', nullable=True, default=None, autoincrement=False)
+    id_traffic_accident_vehicle = Column(BigInteger, ForeignKey('trafficAccidentVehicle.idVehicle'), name='idTrafficAccidentVehicle', nullable=True, default=None, autoincrement=False)
     time_between_crash_and_police_notification = Column(Integer, name='timeBetweenCrashAndPoliceNotification', nullable=True, default=None)
     injuries_total = Column(Integer, name='injuriesTotal', nullable=True, default=None)
     injuries_fatal = Column(Integer, name='injuriesFatal', nullable=True, default=None)
