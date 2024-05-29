@@ -1,5 +1,3 @@
-from time import time
-
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Numeric, BigInteger
 from sqlalchemy.orm import sessionmaker, declarative_base
 
