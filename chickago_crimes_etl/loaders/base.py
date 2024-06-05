@@ -4,17 +4,25 @@ from time import time
 import pandas as pd
 from abc import ABC, abstractmethod
 
-from .orm.models import Session, TrafficAccidentVictimsInChicago
+from sqlalchemy.orm import sessionmaker
+
+from .orm.models import Base, engine, TrafficAccidentVictimsInChicago
 
 
 class TrafficCrashesLoader(ABC):
     FILE_PROCESSING_CHUNK_SIZE = int(os.getenv("FILE_PROCESSING_CHUNK_SIZE", "1000000"))
     BASE_PATH = os.getenv("BASE_PATH", "./")
+    SessionFactory = None
+
+    def __init__(self):
+        if not self.SessionFactory:
+            Base.metadata.create_all(engine)
+            self.SessionFactory = sessionmaker(bind=engine)
 
     def run(self, run_id: str) -> str:
         i = 1
         print(f'starting processing of {run_id = !r}')
-        with Session.begin() as session:
+        with self.SessionFactory.begin() as session:
             existing_non_empty_traffic_accidents = session.query(
                 TrafficAccidentVictimsInChicago.id_traffic_accident).where(getattr(TrafficAccidentVictimsInChicago,
                                                                                    self.fact_column_id).isnot(None)
@@ -41,7 +49,7 @@ class TrafficCrashesLoader(ABC):
         pass
 
     def _perform_bulk_insert(self, items: list, item_accident_ids: list[str]):
-        with Session.begin() as session:
+        with self.SessionFactory.begin() as session:
             try:
                 session.bulk_save_objects(items)
                 session.flush()

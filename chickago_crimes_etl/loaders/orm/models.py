@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Numeric, BigInteger
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base
 
 from .auth import DB_USERNAME, DB_PASSWORD, DB_SERVER_URL, SQL_DRIVER, SQL_DATABASE
 
@@ -82,7 +82,3 @@ class TrafficAccidentVictimsInChicago(Base):
 
 connection_string = f'mssql+pyodbc://{DB_USERNAME}:{DB_PASSWORD}@{DB_SERVER_URL}/{SQL_DATABASE}?driver={SQL_DRIVER}'
 engine = create_engine(url=connection_string, echo=True)
-
-Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)

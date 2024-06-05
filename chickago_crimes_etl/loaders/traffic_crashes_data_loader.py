@@ -5,6 +5,7 @@ from .orm.models import TrafficAccident, TrafficAccidentVictimsInChicago
 class TrafficCrashesDataLoader(TrafficCrashesLoader):
 
     def __init__(self):
+        super().__init__()
         self.injuries_per_accident = {}
 
     def create_single_item(self, row_data: dict):
