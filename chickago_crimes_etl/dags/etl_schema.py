@@ -19,6 +19,7 @@ from utils.run_utils import run_processor
     dag_id="chicago-etl",
     default_args={"retries": 1},
     params={
+        # TODO: this won't change - take jobId from **kwargs
         "run_id": str(uuid.uuid4()),
     },
 )
@@ -50,6 +51,7 @@ def process_chicago_etl():
     ):
         runner(loader_cls=loader_cls, run_id="{{ params.run_id }}")
         loader_matrix.append(runner)
+    # TODO: this won't work - make it "partial"
     processors_matrix >> [loader_matrix[0]] >> loader_matrix[1:]
 
 
