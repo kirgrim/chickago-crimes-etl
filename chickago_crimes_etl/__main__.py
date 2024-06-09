@@ -25,6 +25,7 @@ from chickago_crimes_etl.loaders.traffic_crashes_locations_loader import Traffic
 from chickago_crimes_etl.loaders.traffic_crashes_police_notified_date_loader import TrafficCrashesPoliceNotifiedDateLoader
 from chickago_crimes_etl.loaders.traffic_crashes_vehicles_loader import TrafficCrashesVehiclesLoader
 from chickago_crimes_etl.loaders.traffic_crashes_victims_agg_loader import TrafficCrashesVictimsAggLoader
+from chickago_crimes_etl.loaders.traffic_crashes_fact_table_loader import TrafficCrashesFactTableLoader
 
 from chickago_crimes_etl.utils.run_utils import run_loader
 
@@ -35,5 +36,6 @@ for loader in (
     TrafficCrashesPoliceNotifiedDateLoader,
     TrafficCrashesVehiclesLoader,
     TrafficCrashesVictimsAggLoader,
+    TrafficCrashesFactTableLoader,
 ):
     run_loader(loader_cls=loader, run_id=run_id)
