@@ -1,5 +1,3 @@
-import uuid
-
 from airflow.decorators import dag, task
 
 from loaders.traffic_crashes_accident_time_loader import TrafficCrashesAccidentDateLoader
@@ -9,35 +7,41 @@ from loaders.traffic_crashes_police_notified_date_loader import \
     TrafficCrashesPoliceNotifiedDateLoader
 from loaders.traffic_crashes_vehicles_loader import TrafficCrashesVehiclesLoader
 from loaders.traffic_crashes_victims_agg_loader import TrafficCrashesVictimsAggLoader
+from loaders.traffic_crashes_fact_table_loader import TrafficCrashesFactTableLoader
 from processors.traffic_crashes_crashes import TrafficCrashesCrashesCSVProcessor
 from processors.traffic_crashes_people import TrafficCrashesPeopleCSVProcessor
 from processors.traffic_crashes_vehicles import TrafficCrashesVehiclesCSVProcessor
-from utils.run_utils import run_processor
+from utils.run_utils import run_processor, run_loader
 
 
 @dag(
     dag_id="chicago-etl",
-    default_args={"retries": 1},
-    params={
-        # TODO: this won't change - take jobId from **kwargs
-        "run_id": str(uuid.uuid4()),
-    },
+    default_args={"retries": 0},
 )
 def process_chicago_etl():
 
     processors_matrix = []
+
+    @task
+    def processor_runner(processor_cls, **kwargs):
+        """This is a function that will run within the DAG execution"""
+        run_processor(processor_cls=processor_cls, run_id=kwargs['dag_run'].run_id)
+        return "OK"
 
     for processor_cls in (
         TrafficCrashesCrashesCSVProcessor,
         TrafficCrashesPeopleCSVProcessor,
         TrafficCrashesVehiclesCSVProcessor
     ):
-        @task(task_id=processor_cls.__name__, op_kwargs={"run_id": "{{ params.run_id }}"})
-        def runner(run_id: str):
-            run_processor(processor_cls=processor_cls, run_id=run_id)
-            return "OK"
+        processor_task = processor_runner.override(task_id=processor_cls.__name__)(processor_cls=processor_cls)
 
-        processors_matrix.append(runner)
+        processors_matrix.append(processor_task)
+
+    @task
+    def loader_runner(loader_cls, **kwargs):
+        """This is a function that will run within the DAG execution"""
+        run_loader(loader_cls=loader_cls, run_id=kwargs['dag_run'].run_id)
+        return "OK"
 
     loader_matrix = []
 
@@ -48,11 +52,19 @@ def process_chicago_etl():
         TrafficCrashesPoliceNotifiedDateLoader,
         TrafficCrashesVehiclesLoader,
         TrafficCrashesVictimsAggLoader,
+        TrafficCrashesFactTableLoader,
     ):
-        runner(loader_cls=loader_cls, run_id="{{ params.run_id }}")
-        loader_matrix.append(runner)
-    # TODO: this won't work - make it "partial"
-    processors_matrix >> [loader_matrix[0]] >> loader_matrix[1:]
+        loader_task = loader_runner.override(task_id=loader_cls.__name__)(loader_cls=loader_cls)
+        loader_matrix.append(loader_task)
+
+    final_task = loader_matrix.pop()
+
+    for processor_task in processors_matrix:
+        for loader_task in loader_matrix:
+            processor_task >> loader_task
+
+    for loader_task in loader_matrix:
+        loader_task >> final_task
 
 
 dag = process_chicago_etl()

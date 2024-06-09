@@ -9,7 +9,7 @@ Base = declarative_base()
 
 class TrafficAccidentLocation(Base):
     __tablename__ = 'trafficAccidentLocation'
-    id = Column(BigInteger, primary_key=True, default=0, name='idLocation')
+    id = Column(BigInteger, primary_key=True, default=0, name='idTrafficAccidentLocation')
     latitude = Column(Numeric(10, 3, asdecimal=False), name='latitude')
     longitude = Column(Numeric(10,3, asdecimal=False), name='longitude')
     crash_location = Column(String(128), name='crashLocation')
@@ -19,7 +19,7 @@ class TrafficAccidentLocation(Base):
 
 class TrafficAccidentVictimsAgg(Base):
     __tablename__ = 'trafficAccidentVictimsAgg'
-    id = Column(BigInteger, primary_key=True, default=0, name='idVictimsAgg')
+    id = Column(BigInteger, primary_key=True, default=0, name='idTrafficAccidentVictimsAgg')
     num_passenger_victims = Column(Integer, name='numPassengerVictims')
     num_driver_victims = Column(Integer, name='numDriverVictims')
     num_pedestrian_victims = Column(String(128), name='numPedestrianVictims')
@@ -58,7 +58,7 @@ class TrafficAccidentTime(Base):
 
 class TrafficAccidentVehicle(Base):
     __tablename__ = 'trafficAccidentVehicle'
-    id = Column(BigInteger, primary_key=True, default=0, name='idVehicle')
+    id = Column(BigInteger, primary_key=True, default=0, name='idTrafficAccidentVehicle')
     vehicle_make = Column(String(64), name='vehicleMake')
     vehicle_model = Column(String(64), name='vehicleModel')
     vehicle_year = Column(Integer, name='vehicleYear')
@@ -69,7 +69,7 @@ class TrafficAccidentVehicle(Base):
 
 class TrafficAccidentVictimsInChicago(Base):
     __tablename__ = 'trafficAccidentVictimsInChicago'
-    id_traffic_accident = Column(String(128), ForeignKey('trafficAccident.idAccidentTraffic'), primary_key=True, name='idTrafficAccident', autoincrement=False)
+    id_traffic_accident = Column(String(128), ForeignKey('trafficAccident.idAccidentTraffic'), primary_key=True, name='idAccidentTraffic')
     id_traffic_accident_time = Column(BigInteger, ForeignKey('trafficAccidentTime.timeId'), name='idTrafficAccidentTime', nullable=True, default=None, autoincrement=False)
     id_traffic_accident_police_notified = Column(BigInteger, ForeignKey('trafficAccidentTime.timeId'), name='idTrafficAccidentPoliceNotified', nullable=True, default=None, autoincrement=False)
     id_traffic_accident_victims_agg = Column(BigInteger, ForeignKey('trafficAccidentVictimsAgg.idVictimsAgg'), name='idTrafficAccidentVictimsAgg', nullable=True, default=None, autoincrement=False)
@@ -80,5 +80,5 @@ class TrafficAccidentVictimsInChicago(Base):
     injuries_fatal = Column(Integer, name='injuriesFatal', nullable=True, default=None)
 
 
-connection_string = f'mssql+pyodbc://{DB_USERNAME}:{DB_PASSWORD}@{DB_SERVER_URL}/{SQL_DATABASE}?driver={SQL_DRIVER}'
+connection_string = f'mssql+pyodbc://{DB_USERNAME}:{DB_PASSWORD}@{DB_SERVER_URL}/{SQL_DATABASE}?driver={SQL_DRIVER}&timeout=120'
 engine = create_engine(url=connection_string, echo=True)

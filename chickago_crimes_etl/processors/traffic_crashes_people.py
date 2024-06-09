@@ -18,14 +18,14 @@ class TrafficCrashesPeopleCSVProcessor(TrafficCrashesCSVProcessor):
         victims_agg_dim_filename = 'traffic_victims_agg_dim.csv'
         destination_path = os.path.join(destination_path, victims_agg_dim_filename)
         accident_traffic_columns = {'CRASH_RECORD_ID': 'IdIncident',
-                                    'NUM_PASSENGER_VICTIMS': 'NumPassengerVictims',
-                                    'NUM_DRIVER_VICTIMS': 'NumDriverVictims',
-                                    'NUM_PEDESTRIAN_VICTIMS': 'NumPedestrianVictims',
-                                    'NUM_MALES': 'NumMales',
-                                    'NUM_FEMALES': 'NumFemales',
-                                    'NUM_CHILDREN': 'NumChildren',
-                                    'NUM_ADULTS': 'NumAdults',
-                                    'NUM_SENIORS': 'NumSeniors'
+                                    'NUM_PASSENGER_VICTIMS': 'numPassengerVictims',
+                                    'NUM_DRIVER_VICTIMS': 'numDriverVictims',
+                                    'NUM_PEDESTRIAN_VICTIMS': 'numPedestrianVictims',
+                                    'NUM_MALES': 'numMales',
+                                    'NUM_FEMALES': 'numFemales',
+                                    'NUM_CHILDREN': 'numChildren',
+                                    'NUM_ADULTS': 'numAdults',
+                                    'NUM_SENIORS': 'numSeniors'
                                     }
         # passenger type aggregation
 

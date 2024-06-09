@@ -22,34 +22,33 @@ class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
         print('.', end='')
         self._populate_police_notified_date_dim_csv(data=data,
                                                     destination_path=destination_path)
+        print('.', end='')
+        self._populate_fact_table_pivot_dim_csv(data=data,
+                                                destination_path=destination_path)
         print('. DONE', end='\n')
 
     def _populate_accident_traffic_dim_csv(self, data: pd.DataFrame, destination_path: str):
         accident_traffic_dim_filename = 'accident_traffic_dim.csv'
         destination_path = os.path.join(destination_path, accident_traffic_dim_filename)
         accident_traffic_columns = {'CRASH_RECORD_ID': 'IdIncident',
-                                    'WEATHER_CONDITION': 'WeatherCondition',
-                                    'LIGHTING_CONDITION': 'LightingCondition',
-                                    'ROADWAY_SURFACE_COND': 'RoadwaySurfaceCond',
-                                    'DAMAGE': 'Damage',
-                                    'POSTED_SPEED_LIMIT': 'PostedSpeedLimit',
-                                    'CRASH_TYPE': 'CrashType',
-                                    'INJURIES_TOTAL': 'InjuriesTotal',
-                                    'INJURIES_FATAL': 'InjuriesFatal',
-                                    'PRIM_CONTRIBUTORY_CAUSE': 'Cause'
+                                    'WEATHER_CONDITION': 'weatherCondition',
+                                    'LIGHTING_CONDITION': 'lightingCondition',
+                                    'ROADWAY_SURFACE_COND': 'roadSurfaceCondition',
+                                    'DAMAGE': 'damage',
+                                    'POSTED_SPEED_LIMIT': 'postedSpeedLimit',
+                                    'CRASH_TYPE': 'crashType',
+                                    'PRIM_CONTRIBUTORY_CAUSE': 'cause'
                                     }
-        data['INJURIES_TOTAL'] = data['INJURIES_TOTAL'].fillna(0).astype(int)
-        data['INJURIES_FATAL'] = data['INJURIES_FATAL'].fillna(0).astype(int)
         self._populate_to_csv(data=data, destination_path=destination_path, columns_mapping=accident_traffic_columns)
 
     def _populate_location_dim_csv(self, data: pd.DataFrame, destination_path: str):
         location_columns = {
             'CRASH_RECORD_ID': 'IdIncident',
-            'LATITUDE': 'Latitude',
-            'LONGITUDE': 'Longitude',
-            'LOCATION': 'CrashLocation',
-            'STREET_NO': 'StreetNo',
-            'STREET_NAME': 'StreetName',
+            'LATITUDE': 'latitude',
+            'LONGITUDE': 'longitude',
+            'LOCATION': 'crashLocation',
+            'STREET_NO': 'streetNo',
+            'STREET_NAME': 'streetName',
         }
         accident_location_dim_filename = 'accident_location_dim.csv'
         data.fillna(-1, inplace=True)
@@ -61,15 +60,15 @@ class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
         destination_path = os.path.join(destination_path, accident_time_dim_filename)
         accident_time_columns = {
             'CRASH_RECORD_ID': 'IdIncident',
-            'CRASH_DATE': 'IncidentDate',
-            'YEAR': 'Year',
-            'MONTH': 'Month',
-            'MONTH_NAME': 'MonthName',
-            'DAY_OF_WEEK': 'WeekDay',
-            'DAY_OF_WEEK_NAME': 'WeekDayName',
-            'DAY': 'Day',
-            'HOUR': 'Hour',
-            'MINUTE': 'Minute'
+            'CRASH_DATE': 'date',
+            'YEAR': 'year',
+            'MONTH': 'month',
+            'MONTH_NAME': 'monthName',
+            'DAY_OF_WEEK': 'weekDay',
+            'DAY_OF_WEEK_NAME': 'weekDayName',
+            'DAY': 'day',
+            'HOUR': 'hour',
+            'MINUTE': 'minute'
         }
         data = self._decompose_date_columns(data=data, source_column='CRASH_DATE')
         self._populate_to_csv(data=data, destination_path=destination_path, columns_mapping=accident_time_columns)
@@ -79,15 +78,15 @@ class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
         destination_path = os.path.join(destination_path, accident_time_dim_filename)
         accident_time_columns = {
             'CRASH_RECORD_ID': 'IdIncident',
-            'DATE_POLICE_NOTIFIED': 'IncidentDate',
-            'YEAR': 'Year',
-            'MONTH': 'Month',
-            'MONTH_NAME': 'MonthName',
-            'DAY_OF_WEEK': 'WeekDay',
-            'DAY_OF_WEEK_NAME': 'WeekDayName',
-            'DAY': 'Day',
-            'HOUR': 'Hour',
-            'MINUTE': 'Minute'
+            'DATE_POLICE_NOTIFIED': 'date',
+            'YEAR': 'year',
+            'MONTH': 'month',
+            'MONTH_NAME': 'monthName',
+            'DAY_OF_WEEK': 'weekDay',
+            'DAY_OF_WEEK_NAME': 'weekDayName',
+            'DAY': 'day',
+            'HOUR': 'hour',
+            'MINUTE': 'minute'
         }
         data = self._decompose_date_columns(data=data, source_column='DATE_POLICE_NOTIFIED')
         self._populate_to_csv(data=data, destination_path=destination_path, columns_mapping=accident_time_columns)
@@ -104,3 +103,20 @@ class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
         data['HOUR'] = date_series.apply(lambda x: x.hour)
         data['MINUTE'] = date_series.apply(lambda x: x.minute)
         return data
+
+    def _populate_fact_table_pivot_dim_csv(self, data: pd.DataFrame, destination_path):
+        fact_table_pivot_dim_filename = 'fact_table_mapping.csv'
+        destination_path = os.path.join(destination_path, fact_table_pivot_dim_filename)
+        data = data.copy().reset_index()
+        data['CRASH_DATE'] = data['CRASH_DATE'].apply(lambda x: datetime.datetime.strptime(x, "%m/%d/%Y %I:%M:%S %p"))
+        data['DATE_POLICE_NOTIFIED'] = data['DATE_POLICE_NOTIFIED'].apply(lambda x: datetime.datetime.strptime(x, "%m/%d/%Y %I:%M:%S %p"))
+        data['INJURIES_TOTAL'] = data['INJURIES_TOTAL'].fillna(0).astype(int)
+        data['INJURIES_FATAL'] = data['INJURIES_FATAL'].fillna(0).astype(int)
+
+        df = pd.DataFrame({
+            'idTrafficAccident': data['CRASH_RECORD_ID'],
+            'injuriesTotal': data['INJURIES_TOTAL'],
+            'injuriesFatal': data['INJURIES_FATAL'],
+            'timeBetweenCrashAndPoliceNotification': (data['DATE_POLICE_NOTIFIED'] - data['CRASH_DATE']).dt.total_seconds().astype(int)
+        })
+        self._populate_to_csv(data=df, destination_path=destination_path)

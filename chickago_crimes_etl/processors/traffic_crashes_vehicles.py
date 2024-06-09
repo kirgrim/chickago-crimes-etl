@@ -22,10 +22,10 @@ class TrafficCrashesVehiclesCSVProcessor(TrafficCrashesCSVProcessor):
         data = data.drop_duplicates(subset=['CRASH_RECORD_ID'], keep=False)
         data['VEHICLE_YEAR'] = data['VEHICLE_YEAR'].fillna(-1).astype(int)
         vehicle_columns = {'CRASH_RECORD_ID': 'IdIncident',
-                           'MAKE': 'VehicleMake',
-                           'MODEL': 'VehicleModel',
-                           'VEHICLE_YEAR': 'VehicleYear',
-                           'VEHICLE_TYPE': 'VehicleType',
-                           'VEHICLE_USE': 'VehicleUse',
-                           'MANEUVER': 'Maneuver'}
+                           'MAKE': 'vehicleMake',
+                           'MODEL': 'vehicleModel',
+                           'VEHICLE_YEAR': 'vehicleYear',
+                           'VEHICLE_TYPE': 'vehicleType',
+                           'VEHICLE_USE': 'vehicleUse',
+                           'MANEUVER': 'maneuver'}
         self._populate_to_csv(data=data, destination_path=destination_path, columns_mapping=vehicle_columns)
