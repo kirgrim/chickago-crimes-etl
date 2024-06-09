@@ -4,17 +4,13 @@ from .orm.models import TrafficAccidentLocation
 
 class TrafficCrashesLocationsLoader(TrafficCrashesLoader):
 
-    def create_single_item(self, row_data: dict):
-        return TrafficAccidentLocation(id=self._get_ts_id(),
-                                       latitude=row_data['Latitude'],
-                                       longitude=row_data['Longitude'],
-                                       crash_location=row_data['CrashLocation'],
-                                       street_no=row_data['StreetNo'],
-                                       street_name=row_data['StreetName'])
+    @property
+    def target_table(self):
+        return TrafficAccidentLocation
 
     @property
     def fact_column_id(self) -> str:
-        return 'id_traffic_accident_location'
+        return 'idTrafficAccidentLocation'
 
     @property
     def csv_source_file(self) -> str:

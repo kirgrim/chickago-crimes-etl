@@ -19,8 +19,10 @@ class TrafficCrashesVehiclesCSVProcessor(TrafficCrashesCSVProcessor):
         # considering only car-based causes
         data = data.loc[data['UNIT_TYPE'] == 'DRIVER']
         # removing multiple-car accidents
-        data = data.drop_duplicates(subset=['CRASH_RECORD_ID'], keep=False)
-        data['VEHICLE_YEAR'] = data['VEHICLE_YEAR'].fillna(-1).astype(int)
+        data = data.drop_duplicates(subset=['CRASH_RECORD_ID'], keep="first")
+        data['VEHICLE_YEAR'] = data['VEHICLE_YEAR'].fillna(0)
+        data['VEHICLE_YEAR'] = data['VEHICLE_YEAR'].astype(int)
+        data = data.fillna("UNKNOWN")
         vehicle_columns = {'CRASH_RECORD_ID': 'IdIncident',
                            'MAKE': 'vehicleMake',
                            'MODEL': 'vehicleModel',

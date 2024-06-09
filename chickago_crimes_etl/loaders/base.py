@@ -1,94 +1,89 @@
+import io
 import os
+import sys
+from collections import defaultdict
 from time import time
 
 import pandas as pd
 from abc import ABC, abstractmethod
 
+from sqlalchemy import func, insert
 from sqlalchemy.orm import sessionmaker
 
 from .orm.models import Base, engine, TrafficAccidentVictimsInChicago
+from utils.base_etl_task import BaseETLTask
 
 
-class TrafficCrashesLoader(ABC):
+class TrafficCrashesLoader(BaseETLTask, ABC):
     FILE_PROCESSING_CHUNK_SIZE = int(os.getenv("FILE_PROCESSING_CHUNK_SIZE", "1000000"))
-    BASE_PATH = os.getenv("BASE_PATH", "./")
     SessionFactory = None
+    pivot_table_mapping = {}
 
     def __init__(self):
         if not self.SessionFactory:
             Base.metadata.create_all(engine)
             self.SessionFactory = sessionmaker(bind=engine)
+        self.max_id = -1
 
     def run(self, run_id: str) -> str:
         i = 1
         print(f'starting processing of {run_id = !r}')
         with self.SessionFactory.begin() as session:
             existing_non_empty_traffic_accidents = session.query(
-                TrafficAccidentVictimsInChicago.id_traffic_accident).where(getattr(TrafficAccidentVictimsInChicago,
-                                                                                   self.fact_column_id).isnot(None)
+                TrafficAccidentVictimsInChicago.idAccidentTraffic).where(getattr(TrafficAccidentVictimsInChicago,
+                                                                                 self.fact_column_id).isnot(None)
                                                                            ).all()
             existing_non_empty_traffic_accidents = [x[0] for x in existing_non_empty_traffic_accidents]
-        full_source_path = os.path.join(self.BASE_PATH, "dim_raw", run_id, self.csv_source_file)
+            self.max_id = self.get_max_id(session=session)
+        full_source_path = os.path.join(self.DIM_FILES_DIR, run_id, self.csv_source_file)
         for chunk in pd.read_csv(full_source_path, chunksize=self.FILE_PROCESSING_CHUNK_SIZE, parse_dates=True):
             chunk = chunk.loc[~chunk['IdIncident'].isin(existing_non_empty_traffic_accidents)]
             if not chunk.empty:
                 print(f'Running chunk #{i}')
-                self.run_processing(data=chunk)
+                self.run_processing(data=chunk, run_id=run_id)
                 i += 1
 
-    def run_processing(self, data: pd.DataFrame):
-        item_accident_ids = []
-        items = []
-        for i, row in data.iterrows():
-            item_accident_ids.append(row['IdIncident'])
-            items.append(self.create_single_item(row_data=row))
-            self._store_extras(row)
-        self._perform_bulk_insert(items=items, item_accident_ids=item_accident_ids)
+    def get_max_id(self, session) -> int:
+        return session.query(func.max(self.target_table.id)).first()[0] or 0
 
-    def _store_extras(self, row: dict):
-        pass
+    def run_processing(self, data: pd.DataFrame, run_id: str):
+        data = self.clean_data(data)
+        data = self.store_id_mapping(data=data, run_id=run_id)
+        data_records = data.to_dict('records')
+        try:
+            self.execute_bulk_insert(data_records)
+        except Exception as e:
+            print(f'Failed to execute bulk insert ({e}) trying with executemany', file=sys.stderr)
+            self.execute_in_batches(data_records, batch_size=150)
 
-    def _perform_bulk_insert(self, items: list, item_accident_ids: list[str]):
-        with self.SessionFactory.begin() as session:
-            try:
-                session.bulk_save_objects(items)
-                session.flush()
-                inserted_ids = [item.id for item in items]
-                self._update_fact_table_with_inserted_items(session=session,
-                                                            item_accident_ids=item_accident_ids,
-                                                            inserted_ids=inserted_ids)
-                session.commit()
-            except:
-                # Rollback in case of error
-                session.rollback()
-                raise
+    def clean_data(self, data: pd.DataFrame) -> pd.DataFrame:
+        return data
 
-    def _update_fact_table_with_inserted_items(self, session, item_accident_ids, inserted_ids):
-        update_records = [{'id_traffic_accident': item_accident_ids[i],
-                           self.fact_column_id: inserted_ids[i]}
-                          for i in range(len(item_accident_ids))]
-        session.bulk_update_mappings(TrafficAccidentVictimsInChicago, update_records)
+    def execute_bulk_insert(self, data_records):
+        with engine.begin() as conn:
+            conn.execute(insert(self.target_table), data_records)
 
-    _step = None
+    def execute_in_batches(self, data_records, batch_size):
+        with engine.begin() as conn:
+            processed = 0
+            for i in range(0, len(data_records), batch_size):
+                batch = data_records[i:i + batch_size]
+                stmt = insert(self.target_table).values(batch)
+                try:
+                    conn.execute(stmt)
+                    processed += batch_size
+                    print('\r' + str(round(i / len(data_records) * 100, 1)) + '% complete', end='')
+                    sys.stdout.flush()
+                except Exception as e:
+                    print(f"Error inserting batch {i // batch_size}: {e}")
 
-    @staticmethod
-    def gen_number():
-        yield from range(1, 10**9, 100)
-
-    @classmethod
-    def _get_next_step(cls):
-        if cls._step is None:
-            cls._step = cls.gen_number()
-        return next(cls._step)
-
-    @classmethod
-    def _get_ts_id(cls) -> int:
-        res = cls._get_next_step() + int(time())
-        return res
-
-    @abstractmethod
-    def create_single_item(self, row_data: dict):
-        pass
+    def store_id_mapping(self, data, run_id: str):
+        data[self.dim_column_id] = range(self.max_id + 1, self.max_id + len(data) + 1)
+        map_data = data.filter(items=[self.dim_column_id, 'IdIncident'])
+        map_data.to_csv(self.get_dim_to_fact_mapping_path(run_id=run_id), mode='a', index=False)
+        self.max_id += len(data)
+        data = data[data.columns[~data.columns.isin(['IdIncident'])]]
+        return data
 
     @property
     @abstractmethod
@@ -99,3 +94,20 @@ class TrafficCrashesLoader(ABC):
     @abstractmethod
     def csv_source_file(self) -> str:
         pass
+
+    @property
+    @abstractmethod
+    def target_table(self):
+        pass
+
+    @property
+    def dim_column_id(self) -> str:
+        return self.target_table.id.expression.name
+
+    def get_mapping_dir(self, run_id: str):
+        return os.path.join(self.DIM_FILES_DIR, run_id, "id_mapping")
+
+    def get_dim_to_fact_mapping_path(self, run_id: str) -> str:
+        mapping_dir = self.get_mapping_dir(run_id=run_id)
+        os.makedirs(mapping_dir, exist_ok=True)
+        return os.path.join(mapping_dir, self.csv_source_file)
