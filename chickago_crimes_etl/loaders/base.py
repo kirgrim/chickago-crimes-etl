@@ -1,8 +1,5 @@
-import io
 import os
 import sys
-from collections import defaultdict
-from time import time
 
 import pandas as pd
 from abc import ABC, abstractmethod
@@ -25,19 +22,23 @@ class TrafficCrashesLoader(BaseETLTask, ABC):
             self.SessionFactory = sessionmaker(bind=engine)
         self.max_id = -1
 
+    @property
+    def incident_id_key(self):
+        return 'IdIncident'
+
     def run(self, run_id: str) -> str:
         i = 1
         print(f'starting processing of {run_id = !r}')
         with self.SessionFactory.begin() as session:
             existing_non_empty_traffic_accidents = session.query(
-                TrafficAccidentVictimsInChicago.idAccidentTraffic).where(getattr(TrafficAccidentVictimsInChicago,
+                TrafficAccidentVictimsInChicago.idTrafficAccident).where(getattr(TrafficAccidentVictimsInChicago,
                                                                                  self.fact_column_id).isnot(None)
                                                                            ).all()
             existing_non_empty_traffic_accidents = [x[0] for x in existing_non_empty_traffic_accidents]
             self.max_id = self.get_max_id(session=session)
         full_source_path = os.path.join(self.DIM_FILES_DIR, run_id, self.csv_source_file)
         for chunk in pd.read_csv(full_source_path, chunksize=self.FILE_PROCESSING_CHUNK_SIZE, parse_dates=True):
-            chunk = chunk.loc[~chunk['IdIncident'].isin(existing_non_empty_traffic_accidents)]
+            chunk = chunk.loc[~chunk[self.incident_id_key].isin(existing_non_empty_traffic_accidents)]
             if not chunk.empty:
                 print(f'Running chunk #{i}')
                 self.run_processing(data=chunk, run_id=run_id)
@@ -80,7 +81,15 @@ class TrafficCrashesLoader(BaseETLTask, ABC):
     def store_id_mapping(self, data, run_id: str):
         data[self.dim_column_id] = range(self.max_id + 1, self.max_id + len(data) + 1)
         map_data = data.filter(items=[self.dim_column_id, 'IdIncident'])
-        map_data.to_csv(self.get_dim_to_fact_mapping_path(run_id=run_id), mode='a', index=False)
+        path = self.get_dim_to_fact_mapping_path(run_id=run_id)
+        try:
+            if os.path.getsize(path):
+                header = False
+            else:
+                header = True
+        except:
+            header = True
+        map_data.to_csv(path, mode='a', index=False, header=header)
         self.max_id += len(data)
         data = data[data.columns[~data.columns.isin(['IdIncident'])]]
         return data

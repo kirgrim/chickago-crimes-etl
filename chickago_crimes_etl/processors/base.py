@@ -33,4 +33,11 @@ class TrafficCrashesCSVProcessor(BaseETLTask, ABC):
     def _populate_to_csv(data: pd.DataFrame, destination_path: str, columns_mapping: dict[str, str] = None):
         if columns_mapping:
             data = data.filter(items=list(columns_mapping)).rename(columns=columns_mapping)
-        data.to_csv(destination_path, mode='a', index=False)
+        try:
+            if os.path.getsize(destination_path):
+                header = False
+            else:
+                header = True
+        except:
+            header = True
+        data.to_csv(destination_path, mode='a', index=False, header=header)

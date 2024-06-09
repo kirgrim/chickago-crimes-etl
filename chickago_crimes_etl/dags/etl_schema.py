@@ -57,14 +57,17 @@ def process_chicago_etl():
         loader_task = loader_runner.override(task_id=loader_cls.__name__)(loader_cls=loader_cls)
         loader_matrix.append(loader_task)
 
-    final_task = loader_matrix.pop()
+    police_notified_task = loader_runner.override(task_id=TrafficCrashesPoliceNotifiedDateLoader.__name__)(loader_cls=TrafficCrashesPoliceNotifiedDateLoader)
+    final_task = loader_runner.override(task_id=TrafficCrashesFactTableLoader.__name__)(loader_cls=TrafficCrashesFactTableLoader)
 
     for processor_task in processors_matrix:
         for loader_task in loader_matrix:
             processor_task >> loader_task
 
     for loader_task in loader_matrix:
-        loader_task >> final_task
+        loader_task >> police_notified_task
+
+    police_notified_task >> final_task
 
 
 dag = process_chicago_etl()

@@ -14,11 +14,8 @@ class TrafficCrashesDateLoader(TrafficCrashesLoader, ABC):
     def target_table(self):
         return TrafficAccidentTime
 
-    @property
-    def csv_source_file(self) -> str:
-        return 'accident_time_dim.csv'
-
     def store_id_mapping(self, data, run_id: str):
+        df_copy = data.copy()
+        df_copy.rename(columns={self.dim_column_id: self.fact_column_id}, inplace=True)
         data = super().store_id_mapping(data, run_id)
-        data = data.rename(columns={self.dim_column_id: 'timeId'})
         return data
