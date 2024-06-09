@@ -1,5 +1,3 @@
-import hashlib
-
 import pandas as pd
 
 from .base import TrafficCrashesLoader

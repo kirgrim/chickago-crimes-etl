@@ -49,10 +49,8 @@ def process_chicago_etl():
         TrafficCrashesDataLoader,
         TrafficCrashesAccidentDateLoader,
         TrafficCrashesLocationsLoader,
-        TrafficCrashesPoliceNotifiedDateLoader,
         TrafficCrashesVehiclesLoader,
         TrafficCrashesVictimsAggLoader,
-        TrafficCrashesFactTableLoader,
     ):
         loader_task = loader_runner.override(task_id=loader_cls.__name__)(loader_cls=loader_cls)
         loader_matrix.append(loader_task)

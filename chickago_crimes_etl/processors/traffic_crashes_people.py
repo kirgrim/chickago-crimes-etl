@@ -49,7 +49,7 @@ class TrafficCrashesPeopleCSVProcessor(TrafficCrashesCSVProcessor):
         data_grouped_by_age_group_df = data_grouped_by_age_group_df.rename(columns=lambda x: f'NUM_{x.upper()}').reset_index()
 
         df_merged = reduce(lambda left, right: pd.merge(left, right, on=['CRASH_RECORD_ID'],
-                                                        how='outer'),
+                                                        how='inner'),
                            [passenger_type_aggregation_df,
                                      data_grouped_person_type_df,
                                      data_grouped_by_age_group_df]).fillna(0)

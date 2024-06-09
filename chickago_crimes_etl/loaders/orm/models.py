@@ -33,7 +33,7 @@ class TrafficAccidentVictimsAgg(Base):
 
 class TrafficAccident(Base):
     __tablename__ = 'trafficAccident'
-    idAccidentTraffic = Column(String(128), primary_key=True, default="", name='idAccidentTraffic')
+    idTrafficAccident = Column(String(128), primary_key=True, default="", name='idTrafficAccident')
     weatherCondition = Column(String(64), name='weatherCondition')
     lightingCondition = Column(String(64), name='lightingCondition')
     roadSurfaceCondition = Column(String(64), name='roadSurfaceCondition')
@@ -70,15 +70,15 @@ class TrafficAccidentVehicle(Base):
 
 class TrafficAccidentVictimsInChicago(Base):
     __tablename__ = 'trafficAccidentVictimsInChicago'
-    idTrafficAccident = Column(String(128), ForeignKey('trafficAccident.idAccidentTraffic'), primary_key=True, name='idTrafficAccident')
+    idTrafficAccident = Column(String(128), ForeignKey('trafficAccident.idTrafficAccident'), primary_key=True, name='idTrafficAccident')
     idTrafficAccidentTime = Column(BigInteger, name='idTrafficAccidentTime', nullable=True, default=None, autoincrement=False)
     idTrafficAccidentPoliceNotified = Column(BigInteger, name='idTrafficAccidentPoliceNotified', nullable=True, default=None, autoincrement=False)
     idTrafficAccidentVictimsAgg = Column(BigInteger, name='idTrafficAccidentVictimsAgg', nullable=True, default=None, autoincrement=False)
     idTrafficAccidentLocation = Column(BigInteger, name='idTrafficAccidentLocation', nullable=True, default=None, autoincrement=False)
     idTrafficAccidentVehicle = Column(BigInteger, name='idTrafficAccidentVehicle', nullable=True, default=None, autoincrement=False)
-    timeBetweenCrashAndPoliceNotification = Column(Integer, name='timeBetweenCrashAndPoliceNotification', nullable=True, default=None)
-    injuriesTotal = Column(Integer, name='injuriesTotal', nullable=True, default=None)
-    injuriesFatal = Column(Integer, name='injuriesFatal', nullable=True, default=None)
+    timeBetweenCrashAndPoliceNotification = Column(Integer, name='timeBetweenCrashAndPoliceNotification', nullable=True, default=-1)
+    injuriesTotal = Column(Integer, name='injuriesTotal', nullable=True, default=-1)
+    injuriesFatal = Column(Integer, name='injuriesFatal', nullable=True, default=-1)
 
 
 # connection_string = f'mssql+pyodbc://{DB_USERNAME}:{DB_PASSWORD}@{DB_SERVER_URL}/{SQL_DATABASE}?driver={SQL_DRIVER}&timeout=120'

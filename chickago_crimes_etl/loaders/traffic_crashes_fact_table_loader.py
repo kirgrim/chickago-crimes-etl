@@ -31,7 +31,7 @@ class TrafficCrashesFactTableLoader(TrafficCrashesLoader):
         return data
 
     def clean_data(self, data: pd.DataFrame) -> pd.DataFrame:
-        data = data.merge(self.current_dfs, left_on="idTrafficAccident", right_on="IdIncident", how="inner")
+        data = data.merge(self.current_dfs, left_on="idTrafficAccident", right_on="IdIncident", how="outer")
         data = data[data.columns[~data.columns.isin(['IdIncident'])]]
         cols = ['idTrafficAccidentPoliceNotified',
                 'idTrafficAccidentVehicle',
