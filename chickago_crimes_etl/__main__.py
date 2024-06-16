@@ -2,26 +2,28 @@ from time import time
 
 from chickago_crimes_etl.processors.preprocessor import TrafficCrashesPreprocessor
 
-run_id = '1718546617'
+run_id = str(int(time()))
+
+# PROCESSOR
+
+preprocessor = TrafficCrashesPreprocessor()
+
+preprocessor.run(run_id=run_id)
 
 
-# preprocessor = TrafficCrashesPreprocessor()
-#
-# preprocessor.run(run_id=run_id)
-#
-# # # PROCESSORS
-# from chickago_crimes_etl.processors.traffic_crashes_crashes import TrafficCrashesCrashesCSVProcessor
-# from chickago_crimes_etl.processors.traffic_crashes_people import TrafficCrashesPeopleCSVProcessor
-# from chickago_crimes_etl.processors.traffic_crashes_vehicles import TrafficCrashesVehiclesCSVProcessor
-#
-# from chickago_crimes_etl.utils.run_utils import run_processor
-#
-# for processor in (
-#     TrafficCrashesCrashesCSVProcessor,
-#     TrafficCrashesPeopleCSVProcessor,
-#     TrafficCrashesVehiclesCSVProcessor,
-# ):
-#     run_processor(processor_cls=processor, run_id=run_id)
+# PROCESSORS
+from chickago_crimes_etl.processors.traffic_crashes_crashes import TrafficCrashesCrashesCSVProcessor
+from chickago_crimes_etl.processors.traffic_crashes_people import TrafficCrashesPeopleCSVProcessor
+from chickago_crimes_etl.processors.traffic_crashes_vehicles import TrafficCrashesVehiclesCSVProcessor
+
+from chickago_crimes_etl.utils.run_utils import run_processor
+
+for processor in (
+    TrafficCrashesCrashesCSVProcessor,
+    TrafficCrashesPeopleCSVProcessor,
+    TrafficCrashesVehiclesCSVProcessor,
+):
+    run_processor(processor_cls=processor, run_id=run_id)
 
 
 # LOADERS
