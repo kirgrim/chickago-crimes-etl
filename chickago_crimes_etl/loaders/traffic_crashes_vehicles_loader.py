@@ -19,7 +19,6 @@ class TrafficCrashesVehiclesLoader(TrafficCrashesLoader):
         return 'traffic_vehicle_dim.csv'
 
     def clean_data(self, data):
-        data = data[pd.to_numeric(data['vehicleYear'], errors='coerce').notnull()]
         data['vehicleYear'] = data['vehicleYear'].astype(int)
         data['vehicleYear'] = data['vehicleYear'].apply(lambda x: x if x >= 0 else 0)
         return data

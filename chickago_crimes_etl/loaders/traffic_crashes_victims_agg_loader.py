@@ -30,7 +30,6 @@ class TrafficCrashesVictimsAggLoader(TrafficCrashesLoader):
             'numSeniors'
         ):
             try:
-                data = data[pd.to_numeric(data[column], errors='coerce').notnull()]
                 data[column] = data[column].astype(int)
             except ValueError:
                 print(column)

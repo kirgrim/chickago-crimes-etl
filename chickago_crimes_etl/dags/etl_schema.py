@@ -11,7 +11,7 @@ from loaders.traffic_crashes_fact_table_loader import TrafficCrashesFactTableLoa
 from processors.traffic_crashes_crashes import TrafficCrashesCrashesCSVProcessor
 from processors.traffic_crashes_people import TrafficCrashesPeopleCSVProcessor
 from processors.traffic_crashes_vehicles import TrafficCrashesVehiclesCSVProcessor
-from utils.run_utils import run_processor, run_loader
+from utils.run_utils import run_processor, run_loader, run_preprocessor
 
 
 @dag(
@@ -19,6 +19,13 @@ from utils.run_utils import run_processor, run_loader
     default_args={"retries": 0},
 )
 def process_chicago_etl():
+
+    @task
+    def preprocesor_runner(**kwargs):
+        run_preprocessor(run_id=kwargs['dag_run'].run_id)
+        return "OK"
+
+    preprocessor_task = preprocesor_runner.override(task_id="PreprocessorTask")()
 
     processors_matrix = []
 
@@ -57,6 +64,8 @@ def process_chicago_etl():
 
     police_notified_task = loader_runner.override(task_id=TrafficCrashesPoliceNotifiedDateLoader.__name__)(loader_cls=TrafficCrashesPoliceNotifiedDateLoader)
     final_task = loader_runner.override(task_id=TrafficCrashesFactTableLoader.__name__)(loader_cls=TrafficCrashesFactTableLoader)
+
+    preprocessor_task >> processors_matrix
 
     for processor_task in processors_matrix:
         for loader_task in loader_matrix:

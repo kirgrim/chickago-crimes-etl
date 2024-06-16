@@ -8,22 +8,20 @@ from utils.base_etl_task import BaseETLTask
 class TrafficCrashesCSVProcessor(BaseETLTask, ABC):
 
     FILE_PROCESSING_CHUNK_SIZE = int(os.getenv("FILE_PROCESSING_CHUNK_SIZE", "1000000"))
+    TRAFFIC_CRASHES_SRC_PATH = os.getenv("TRAFFIC_CRASHES_SRC_PATH")
 
     def run(self, run_id: str) -> str:
         destination_path = os.path.join(self.DIM_FILES_DIR, run_id)
-        try:
-            os.makedirs(destination_path, exist_ok=True)
-        except FileExistsError:
-            pass
+        os.makedirs(destination_path, exist_ok=True)
         print(f'starting processing of {run_id = !r}')
-        for i, chunk in enumerate(pd.read_csv(self.csv_source_path, chunksize=self.FILE_PROCESSING_CHUNK_SIZE, parse_dates=True)):
+        for i, chunk in enumerate(pd.read_csv(self.get_csv_source_path(run_id=run_id),
+                                              chunksize=self.FILE_PROCESSING_CHUNK_SIZE,
+                                              parse_dates=True)):
             print(f'Running chunk #{i+1}')
             self.run_processing(data=chunk, destination_path=destination_path)
 
-    @property
-    @abstractmethod
-    def csv_source_path(self) -> str:
-        pass
+    def get_csv_source_path(self, run_id: str) -> str:
+        return os.path.join(self.TRAFFIC_CRASHES_SRC_PATH, run_id, 'traffic_crashes_joined.csv')
 
     @abstractmethod
     def run_processing(self, data: pd.DataFrame, destination_path: str):

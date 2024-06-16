@@ -18,9 +18,7 @@ COPY --chown=airflow:root chickago_crimes_etl/processors/ /chickago_crimes_etl/p
 COPY --chown=airflow:root chickago_crimes_etl/utils/ /chickago_crimes_etl/utils
 
 ENV PYTHONPATH="/:/chickago_crimes_etl:${PYTHONPATH}"
-ENV TRAFFIC_CRASHES_PEOPLE_SOURCE_PATH="/chickago_crimes_etl/src/Traffic_Crashes_People.csv"
-ENV TRAFFIC_CRASHES_CRASHES_SOURCE_PATH="/chickago_crimes_etl/src/Traffic_Crashes_Crashes.csv"
-ENV TRAFFIC_CRASHES_VEHICLES_SOURCE_PATH="/chickago_crimes_etl/src/Traffic_Crashes_Vehicles.csv"
+ENV TRAFFIC_CRASHES_SRC_PATH="/chickago_crimes_etl/src/"
 ENV DIM_FILES_DIR="/chickago_crimes_etl/dim/"
 ENV DB_SERVER_URL="mssql-db:1433"
 ENV FILE_PROCESSING_CHUNK_SIZE=1000000

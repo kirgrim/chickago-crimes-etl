@@ -38,8 +38,7 @@ class TrafficCrashesFactTableLoader(TrafficCrashesLoader):
                 'idTrafficAccidentVictimsAgg',
                 'idTrafficAccidentTime',
                 'idTrafficAccidentLocation',]
-        data[cols] = data[cols].fillna(0).astype(int)
-        data = data.drop_duplicates(subset=['idTrafficAccident'], keep="first")
+        data[cols] = data[cols].dropna()
         return data
 
     @property
@@ -54,7 +53,7 @@ class TrafficCrashesFactTableLoader(TrafficCrashesLoader):
             dfs.append(df)
         merged_df = dfs[0]
         for df in dfs[1:]:
-            merged_df = merged_df.merge(df, on="IdIncident", how='outer')
+            merged_df = merged_df.merge(df, on="IdIncident")
         return merged_df
 
     def run(self, run_id: str) -> str:

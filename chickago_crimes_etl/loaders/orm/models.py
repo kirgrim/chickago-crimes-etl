@@ -71,11 +71,11 @@ class TrafficAccidentVehicle(Base):
 class TrafficAccidentVictimsInChicago(Base):
     __tablename__ = 'trafficAccidentVictimsInChicago'
     idTrafficAccident = Column(String(128), ForeignKey('trafficAccident.idTrafficAccident'), primary_key=True, name='idTrafficAccident')
-    idTrafficAccidentTime = Column(BigInteger, name='idTrafficAccidentTime', nullable=True, default=None, autoincrement=False)
-    idTrafficAccidentPoliceNotified = Column(BigInteger, name='idTrafficAccidentPoliceNotified', nullable=True, default=None, autoincrement=False)
-    idTrafficAccidentVictimsAgg = Column(BigInteger, name='idTrafficAccidentVictimsAgg', nullable=True, default=None, autoincrement=False)
-    idTrafficAccidentLocation = Column(BigInteger, name='idTrafficAccidentLocation', nullable=True, default=None, autoincrement=False)
-    idTrafficAccidentVehicle = Column(BigInteger, name='idTrafficAccidentVehicle', nullable=True, default=None, autoincrement=False)
+    idTrafficAccidentTime = Column(BigInteger, ForeignKey('trafficAccidentTime.timeId'), name='idTrafficAccidentTime', nullable=False)
+    idTrafficAccidentPoliceNotified = Column(BigInteger, ForeignKey('trafficAccidentTime.timeId'), name='idTrafficAccidentPoliceNotified', nullable=False)
+    idTrafficAccidentVictimsAgg = Column(BigInteger, ForeignKey('trafficAccidentVictimsAgg.idTrafficAccidentVictimsAgg'), name='idTrafficAccidentVictimsAgg', nullable=False)
+    idTrafficAccidentLocation = Column(BigInteger, ForeignKey('trafficAccidentLocation.idTrafficAccidentLocation'), name='idTrafficAccidentLocation', nullable=False)
+    idTrafficAccidentVehicle = Column(BigInteger, ForeignKey('trafficAccidentVehicle.idTrafficAccidentVehicle'), name='idTrafficAccidentVehicle', nullable=False)
     timeBetweenCrashAndPoliceNotification = Column(Integer, name='timeBetweenCrashAndPoliceNotification', nullable=True, default=-1)
     injuriesTotal = Column(Integer, name='injuriesTotal', nullable=True, default=-1)
     injuriesFatal = Column(Integer, name='injuriesFatal', nullable=True, default=-1)

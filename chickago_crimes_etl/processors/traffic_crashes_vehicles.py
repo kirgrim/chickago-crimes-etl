@@ -5,9 +5,6 @@ from .base import TrafficCrashesCSVProcessor
 
 
 class TrafficCrashesVehiclesCSVProcessor(TrafficCrashesCSVProcessor):
-    @property
-    def csv_source_path(self) -> str:
-        return os.getenv("TRAFFIC_CRASHES_VEHICLES_SOURCE_PATH")
 
     def run_processing(self, data: pd.DataFrame, destination_path: str):
         self._populate_vehicle_dim_csv(data=data,
@@ -16,10 +13,7 @@ class TrafficCrashesVehiclesCSVProcessor(TrafficCrashesCSVProcessor):
     def _populate_vehicle_dim_csv(self, data: pd.DataFrame, destination_path: str):
         victims_agg_dim_filename = 'traffic_vehicle_dim.csv'
         destination_path = os.path.join(destination_path, victims_agg_dim_filename)
-        # considering only car-based causes
-        data = data.loc[data['UNIT_TYPE'] == 'DRIVER']
         # removing multiple-car accidents
-        data = data.drop_duplicates(subset=['CRASH_RECORD_ID'], keep="first")
         data['VEHICLE_YEAR'] = data['VEHICLE_YEAR'].fillna(0)
         data['VEHICLE_YEAR'] = data['VEHICLE_YEAR'].astype(int)
         data = data.fillna("UNKNOWN")

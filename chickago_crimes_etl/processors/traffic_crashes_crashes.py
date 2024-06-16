@@ -6,9 +6,6 @@ from .base import TrafficCrashesCSVProcessor
 
 
 class TrafficCrashesCrashesCSVProcessor(TrafficCrashesCSVProcessor):
-    @property
-    def csv_source_path(self) -> str:
-        return os.getenv("TRAFFIC_CRASHES_CRASHES_SOURCE_PATH")
 
     def run_processing(self, data: pd.DataFrame, destination_path: str):
         self._populate_accident_traffic_dim_csv(data=data,
